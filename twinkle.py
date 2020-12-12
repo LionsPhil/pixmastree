@@ -32,6 +32,8 @@ try:
 		for index, pixel in enumerate(tree):
 			# Work out the voltage across this bulb
 			v_drop = voltage * (resistances[index] / total_resistance)
+			# Clamp it, should we be the only one on
+			v_drop = min(v_drop, 1.0)
 			# Does this one *have* a bimetallic strip?
 			has_bms = ((index % bms_every) == 0)
 			# Heat filament based on current and noise if not yet shorted
