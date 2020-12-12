@@ -55,4 +55,5 @@ try:
 		# This should really have a proper limiter
 		sleep(0.1)
 except KeyboardInterrupt:
+	tree.off()
 	tree.close()
