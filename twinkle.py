@@ -16,6 +16,7 @@ def incandesce(brightness):
 resistances = [1.0] * len(tree)
 temps_fil = [0.0] * len(tree) # filament temperatures
 temps_bi = [0.0] * len(tree) # bimetallic strip temperatures
+new_pixels = [(0, 0, 0)] * len(tree) # buffer to batch-setting pixels
 
 voltage = 0.5 * len(tree) # enough for bulbs to normally run at 50%
 bms_every = 1 # doesn't work very well
@@ -40,7 +41,8 @@ try:
 			if not has_bms or temps_bi[index] < bimetallic_open_temp:
 				temps_fil[index] += (v_drop * heat_rate * random.uniform(1.0 - heat_variance, 1.0 + heat_variance))
 			# Light it based on temperature
-			pixel.color = incandesce(temps_fil[index])
+			#pixel.color = incandesce(temps_fil[index])
+			new_pixels[index] = incandesce(temps_fil[index])
 			# Transfer heat to the bimetallic strip
 			temps_bi[index] += temps_fil[index] * heat_transfer_rate
 			temps_fil[index] *= 1.0  - heat_transfer_rate
@@ -54,6 +56,7 @@ try:
 			# Debug
 			if False and index == 0:
 				print(f"Lamp {index} v {v_drop} tf {temps_fil[index]} tb {temps_bi[index]} r {resistances[index]}")
+		tree.value = new_pixels
 		# This should really have a proper limiter
 		sleep(0.1)
 except KeyboardInterrupt:
