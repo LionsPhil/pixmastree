@@ -75,8 +75,10 @@ except KeyboardInterrupt:
 		hot = False
 		for index, pixel in enumerate(tree):
 			temps_fil[index] *= 1.0 - heat_transfer_rate
-			if temps_fil[index] > 0.2: # Reasonable cutoff for prompt exit
+			if temps_fil[index] > 0.1: # Reasonable cutoff for prompt exit
 				hot = True
+			else:
+				temps_fil[index] = 0.0
 			new_pixels[index] = incandesce(temps_fil[index])
 		tree.value = new_pixels
 		sleep(0.1)
