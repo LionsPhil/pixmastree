@@ -20,6 +20,8 @@ new_pixels = [(0, 0, 0)] * len(tree) # buffer to batch-setting pixels
 
 voltage = 0.5 * len(tree) # enough for bulbs to normally run at 50%
 bms_every = 1 # doesn't work very well
+star = 3 # index of the star, no BMS
+star_factor = 0.67 # since it's always maxed, dim it a little
 bimetallic_open_temp = 0.5
 heat_rate = 0.1
 heat_variance = 0.05
@@ -37,12 +39,17 @@ try:
 			v_drop = min(v_drop, 1.0)
 			# Does this one *have* a bimetallic strip?
 			has_bms = ((index % bms_every) == 0)
+			if index == star:
+				has_bms = False # Force the top star LED to not have one
 			# Heat filament based on current and noise if not yet shorted
 			if not has_bms or temps_bi[index] < bimetallic_open_temp:
 				temps_fil[index] += (v_drop * heat_rate * random.uniform(1.0 - heat_variance, 1.0 + heat_variance))
 			# Light it based on temperature
 			#pixel.color = incandesce(temps_fil[index])
-			new_pixels[index] = incandesce(temps_fil[index])
+			incandescent_temp = temps_fil[index]
+			if index == star:
+				incandescent_temp *= star_factor
+			new_pixels[index] = incandesce(incandescent_temp)
 			# Transfer heat to the bimetallic strip
 			temps_bi[index] += temps_fil[index] * heat_transfer_rate
 			temps_fil[index] *= 1.0  - heat_transfer_rate
@@ -60,5 +67,18 @@ try:
 		# This should really have a proper limiter
 		sleep(0.1)
 except KeyboardInterrupt:
+	# Do a pleasant cooldown fadeout; this should really be sharing the above
+	# code and killing heat generation, because e.g. special star scaling isn't
+	# applied, but close enough.
+	hot = True
+	while hot:
+		hot = False
+		for index, pixel in enumerate(tree):
+			temps_fil[index] *= 1.0 - heat_transfer_rate
+			if temps_fil[index] > 0.2: # Reasonable cutoff for prompt exit
+				hot = True
+			new_pixels[index] = incandesce(temps_fil[index])
+		tree.value = new_pixels
+		sleep(0.1)
 	tree.off()
 	tree.close()
