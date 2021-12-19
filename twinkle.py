@@ -6,6 +6,40 @@ tree = RGBXmasTree()
 
 def incandesce(brightness):
 	brightness = max(0.0, min(brightness, 1.0))
+	return incandesce_hot(brightness)
+
+def incandesce_colorful(brightness):
+	(r, g, b) = (0.0, 0.0, 0.0)
+	# We use brightness as hue, but...
+	# ...first half it, keeping out of the blues, and later dimming the
+	# intensity some more
+	brightness *= 0.5
+	# https://www.rapidtables.com/convert/color/hsv-to-rgb.html
+	x = 1.0 - abs((brightness * 6.0) % 2.0 - 1.0)
+	if brightness < 1.0/6.0:
+		r = 1.0
+		g = x
+	elif brightness < 2.0/6.0:
+		r = x
+		g = 1.0
+	elif brightness < 3.0/6.0:
+		g = 1.0
+		b = x
+	elif brightness < 4.0/6.0:
+		g = x
+		b = 1.0
+	elif brightness < 5.0/6.0:
+		r = x
+		b = 1.0
+	else:
+		r = 1.0
+		b = x
+	r *= brightness
+	g *= brightness
+	b *= brightness
+	return (r, g, b)
+
+def incandesce_hot(brightness):
 	# Ideally, this should have a emissive temperature curve
 	r = brightness * 0.5
 	g = brightness * brightness * 0.2
@@ -22,7 +56,7 @@ voltage = 0.5 * len(tree) # enough for bulbs to normally run at 50%
 bms_every = 1 # doesn't work very well
 star = 3 # index of the star, no BMS
 star_factor = 0.67 # since it's always maxed, dim it a little
-bimetallic_open_temp = 0.5
+bimetallic_open_temp = 0.4
 heat_rate = 0.1
 heat_variance = 0.05
 heat_transfer_rate = 0.1
